@@ -1,0 +1,91 @@
+<!-- Modal Box -->
+<div id="modal_add" class="backdrop-blur-sm  fixed inset-0  hidden  items-center justify-center px-4 z-1001">
+
+    <!-- <div id="modal_add" class="  backdrop-blur-sm  fixed inset-0 bg-black/40 hidden items-center justify-center px-4 z-1001"> -->
+
+    <!-- Modal Box -->
+    <div class="bg-blue-900/50  border-white rounded-xl w-full max-w-lg rounded-lg shadow-lg p-6 relative">
+
+      <!-- Close Button -->
+      <button id="closeModalBtn" class="absolute right-4 top-4 text-white hover:text-white">
+        ✖
+      </button>
+
+      <h2 class="text-xl font-semibold mb-4 text-white ">Cadastrar Novo Produto</h2>
+
+      <form id="formProduto" class="space-y-4">
+
+        <!-- Imagem do Produto -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Imagem do Produto</label>
+          <input type="file" id="imagem_stk" accept="image/*" required="True"
+            class="w-full border botext-white rounded-md px-3 py-2 text-sm" />
+        </div>
+
+        <!-- Nome -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Nome do Produto</label>
+          <input required="True" type="text" id="nome" class="w-full border botext-white rounded-md px-3 py-2 text-sm"
+            placeholder="Nome do Produto">
+        </div>
+
+        <!-- Preço -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Preço (R$)</label>
+          <input required="True" type="number" id="preco"
+            class="w-full border botext-white rounded-md px-3 py-2 text-sm" placeholder="0.00" step="0.01">
+        </div>
+
+        <!-- Categoria -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Categoria</label>
+          <input required="True" type="text" id="categoria"
+            class="w-full border botext-white rounded-md px-3 py-2 text-sm" placeholder="Categoria">
+        </div>
+
+        <!-- Quantidade -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Quantidade em Estoque</label>
+          <input required="True" type="number" id="quantidade"
+            class="w-full border botext-white rounded-md px-3 py-2 text-sm" placeholder="0">
+        </div>
+        <!-- Quando estiver pouco avisar  -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Avisar quando estiver pouco</label>
+          <input required="True" type="number" id="quantidade_pouco"
+            class="w-full border botext-white rounded-md px-3 py-2 text-sm" placeholder="0">
+        </div>
+
+        <!-- Descrição Breve -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Descrição Breve</label>
+          <input required="True" type="text" id="breve" class="w-full border botext-white rounded-md px-3 py-2 text-sm"
+            placeholder="Resumo do Produto">
+        </div>
+
+        <!-- Descrição Completa -->
+        <div>
+          <label class="block text-sm font-medium text-white mb-1">Descrição Completa</label>
+          <textarea id="descricao" class="w-full border botext-white rounded-md px-3 py-2 text-sm h-28 resize-none"
+            placeholder="Descreva o produto aqui"></textarea>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex items-center justify-between mt-4">
+
+          <button type="button" id="cancelarBtn"
+            class="px-4 py-text-white hovetext-white rounded-md text-white text-sm">
+            Cancelar
+          </button>
+
+          <button type="button" id="send_bnt"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-sm">
+            Salvar Produto +
+          </button>
+
+        </div>
+
+      </form>
+    </div>
+
+  </div>

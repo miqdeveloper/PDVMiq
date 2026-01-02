@@ -1,0 +1,8 @@
+total da venda  - float  
+quantidade  de itens na venda - int 
+itens da venda - [list]
+tipo de pagamento da venda - string
+hora da venda - str
+data  da venda - str
+
+quem vendeu - str

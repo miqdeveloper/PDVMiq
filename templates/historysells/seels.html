@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+{% include 'historysells/scripts_seels.html' %}
+
+<style>
+  body {
+    background-color: #09142c;
+    color: #e7eef8;
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #071024;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #0b2a4a;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1e90ff;
+  }
+
+  /* Pequenos refinamentos que ajudam a ficar mais “igual” ao print */
+  :root {
+    --bg-outer: #050a14;
+    --frame-top: #16356a;
+    --frame-mid: #0b1a33;
+    --frame-bot: #071226;
+
+    --card: rgba(19, 44, 87, 0.62);
+    --stroke: rgba(255, 255, 255, 0.10);
+    --stroke-2: rgba(255, 255, 255, 0.18);
+
+    --btn: #79c1ff;
+    --btnText: #0b1a33;
+    --link: #8fc6ff;
+  }
+
+  /* Melhor comportamento em mobile (barras do navegador) */
+  body {
+    min-height: 100dvh;
+    background: radial-gradient(1200px 700px at 10% 10%, rgba(41, 99, 190, 0.16), transparent 60%),
+      radial-gradient(900px 600px at 90% 40%, rgba(70, 160, 255, 0.10), transparent 55%),
+      var(--bg-outer);
+  }
+
+  /* “Brilho” suave do card */
+  .soft-glow {
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* Garante que o container seja scrollable e tenha altura (ajuste conforme seu layout) */
+  #item_container {
+    max-height: calc(100vh - 220px);
+    /* ajuste o cálculo conforme header/footer */
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Placeholder ocupa espaço e mostra borda temporária para debug */
+  .sell-slot {
+    min-height: 100px;
+    /* garante espaço para o observer */
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.36s ease, transform 0.36s ease;
+    border-radius: 12px;
+    /* borda leve só para depurar visualmente — remova quando confirmar */
+    border: 1px dashed rgba(255, 255, 255, 0.06);
+    padding: 6px;
+    box-sizing: border-box;
+    background: transparent;
+  }
+
+  /* Quando renderizado, aplica animação */
+  .sell-slot.rendered {
+    opacity: 1;
+    transform: translateY(0);
+    border: none;
+    /* remove borda de debug */
+  }
+</style>
+
+<body class="m-6">
+  <!-- Header -->
+
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+
+
+      <h1 id="data_now" class="p-2 sm: text-[17px]  md:text-[22px] text-xl font-semibold"></h1>
+    </div>
+
+    <div class="flex gap-3">
+      <button class="flex items-center gap-2 bg-[#132041] px-4 py-2 rounded-lg text-sm text-gray-300">
+        📅 Seleção de data
+      </button>
+      <input type="text" placeholder="Buscar por ID, cliente ou produto..."
+        class="bg-[#132041] px-4 py-2 rounded-lg text-sm text-gray-300 placeholder-gray-400 outline-none" />
+    </div>
+  </div>
+
+
+  <!-- Container Principal -->
+  <div class="">
+
+    <!-- Subtítulo -->
+    <h2 id="sub_h2" class="text-lg font-medium mb-4">
+
+    </h2>
+    <div id="item_container"
+      class=" space-y-4 h-lvh overflow-y-auto pr-2 custom-scrollbar bg-gradient-to-b from-[#0E1A33] to-[#0B1220] rounded-2xl shadow-xl p-4 text-white">
+
+
+      <!-- CARD  PRODUTO -->
+
+
+
+    </div>
+
+  </div>
+
+  <!-- Total -->
+  <div class="  m-5 sticky inset-x-0 bottom-8 bg-[#0E1A33] rounded-xl p-2  items-center justify-center flex gap-2">
+    <span class="sm: text-[18px]  md:text-[26px] text-lg font-medium">Vendas:</span>
+    <span id="total_sells" class="sm: text-[18px]  md:text-[26px] 2xl font-bold">0</span>
+  </div>
+
+  {% include "alertas.html" %}
+
+  {% include "usersTemplates/menu_admin.html" %}
+
+
+</body>
+
+</html>

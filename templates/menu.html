@@ -1,0 +1,71 @@
+<!-- Menu Floating -->
+
+<div class=" z-1999 flex flex-col fixed bottom-30 right-10 z-50 flex flex-col items-end gap-5 text-base">
+
+  <!-- Dropdown Menu -->
+  <div id="menuDropdown"
+    class="hidden bg-[#0a1e4a]/30 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-2 w-56 mb-2 origin-bottom-right overflow-hidden animate-fade-in-up">
+
+    <div class="px-4 py-3 border-b border-white/5 mb-2">
+      <p class=" font-medium text-white">Menu</p>
+      <p class="text-xs text-text-secondary">Leandro Celulares</p>
+    </div>
+
+
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">💰</span>
+      <a href="{{ url_for('painel') }}">Painel</a>
+
+    </button>
+
+
+
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">🛍️
+        <a href="{{ url_for('get_seels') }}">Historico de vendas</a>
+        
+      </span>
+    </button>
+
+
+
+    <button onclick='abrirModalAdd()'
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📦</span>
+
+      Cadastrar no Stock
+    </button>
+
+
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📝</span>
+      <a href="{{ url_for('services_') }}">Ordems de Servico</a>
+
+    </button>
+
+    <div class="border-t border-white/5 mt-2 pt-2 ">
+      <button class="w-full flex items-center gap-3 px-3 py-2.5  text-error/80 
+                           hover:text-error hover:bg-error/10 rounded-lg transition-colors">
+        <span class="p-1.5 bg-navy-900 rounded-md">🚪</span>
+        <a href="{{ url_for('logout') }}">Sair da conta</a>
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating Main Button -->
+  <button id="menuToggle" class="  bg-[#0a1e4a]/70 w-18 h-18 rounded-full flex items-center justify-center shadow-lg 
+                   shadow-brand-DEFAULT/30 transition-all duration-300 text-white 
+                   hover:scale-110">
+    <span id="iconMenu">☰</span>
+    <span id="iconClose" class="hidden">✖</span>
+  </button>
+</div>

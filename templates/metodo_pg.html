@@ -1,0 +1,60 @@
+<!-- Modal -->
+<div id="modal_pagamento" class="flex backdrop-blur-sm fixed inset-0 hidden items-center justify-center z-1005 px-4  transition-opacity duration-300  opacity-0">
+<!-- <div id="modal_pagamento" class=" items-center justify-center px-4 z-1001 flex"> -->
+
+  <div id="modal_pagamento_box" class="bg-[#0a1e4a] border border-green-500/40 shadow-xl rounded-lg w-full max-w-md 
+              p-6 text-white relative transform scale-90 transition-all duration-300">
+
+    <!-- Fechar (X) -->
+    <button onclick="fecharModalPagamento()" class="absolute top-3 right-3 text-white text-2xl hover:text-red-400">
+      ✖
+    </button>
+
+    <!-- Título -->
+    <div class="flex items-center justify-center mb-4">
+      <h2 class="text-xl font-semibold text-green-400">Selecione a Forma de Pagamento</h2>
+    </div>
+
+    <!-- Botões de pagamento -->
+    <div class="flex flex-col gap-3 mt-6">
+
+      <button data-pagamento="pix" id="btnPix" class="btnPagamento  w-full py-3 bg-green-600 hover:bg-green-700 rounded-md text-white 
+                     font-semibold text-[22px] flex items-center justify-center gap-3">
+        💸 PIX
+      </button>
+
+      <button data-pagamento="dinheiro" id="btnDinheiro" class="btnPagamento  w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-md text-white 
+                     font-semibold text-[22px] flex items-center justify-center gap-3">
+        🪙 Dinheiro
+      </button>
+
+      <button data-pagamento="debito"  id="btnDebito" class=" btnPagamento  w-full py-3 bg-yellow-600 hover:bg-yellow-700 rounded-md text-white 
+                     font-semibold text-[22px] flex items-center justify-center gap-3">
+        💳 Débito
+      </button>
+
+      <button  data-pagamento="credito" id="btnCredito" class=" btnPagamento  w-full py-3 bg-purple-600 hover:bg-purple-700 rounded-md text-white 
+                     font-semibold text-[22px] flex items-center justify-center gap-3">
+        🧾 Crédito
+      </button>
+
+    </div>
+
+    <!-- Botões de ação -->
+    <div class="flex flex-col gap-3 mt-6">
+
+      <button id="btnSalvarPagamento" class="w-full py-3 bg-green-500 hover:bg-green-600 rounded-md text-white 
+                     font-bold text-[22px]">
+        Salvar
+      </button>
+
+      <button onclick="fecharModalPagamento()" class="w-full py-3 bg-red-600 hover:bg-red-700 rounded-md text-white 
+                     font-bold text-[22px]">
+        Cancelar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

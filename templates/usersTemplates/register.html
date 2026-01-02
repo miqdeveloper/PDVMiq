@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cadastro</title>
+
+  <!-- Twind Shim -->
+  {% include 'historysells/scripts_seels.html' %}
+
+
+  <style>
+    :root {
+      --bg-outer: #050a14;
+      --frame-top: #16356a;
+      --frame-mid: #0b1a33;
+      --frame-bot: #071226;
+
+      --card: rgba(19, 44, 87, 0.62);
+      --stroke: rgba(255, 255, 255, 0.10);
+      --stroke-2: rgba(255, 255, 255, 0.18);
+
+      --btn: #79c1ff;
+      --btnText: #0b1a33;
+      --link: #8fc6ff;
+    }
+
+    body {
+      min-height: 100dvh;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(41, 99, 190, 0.16), transparent 60%),
+        radial-gradient(900px 600px at 90% 40%, rgba(70, 160, 255, 0.10), transparent 55%),
+        var(--bg-outer);
+    }
+
+    .soft-glow {
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+  </style>
+</head>
+
+<body class="m-0 flex items-center justify-center p-3 sm:p-6">
+  <div class="
+        w-full [height:100dvh] sm:h-[760px]
+        sm:w-[460px] max-w-[96vw]
+        rounded-2xl sm:rounded-3xl
+        overflow-hidden
+        soft-glow
+        border border-white/10
+        bg-[linear-gradient(180deg,var(--frame-top)_0%,var(--frame-mid)_22%,var(--frame-bot)_100%)]
+      ">
+    <!-- Top bar -->
+    <header class="
+          h-14 sm:h-16
+          px-5 sm:px-6
+          flex items-center
+          bg-[linear-gradient(90deg,#17386e_0%,#142f5b_100%)]
+          border-b border-white/10
+        ">
+      <h1 class="text-white/90 text-[15px] sm:text-[16px] font-semibold tracking-wide">
+        Cadastro
+      </h1>
+    </header>
+
+    <main class="h-[calc(100%-3.5rem)] sm:h-[calc(100%-4rem)] px-5 sm:px-6">
+      <div class="h-full flex flex-col items-center justify-center gap-5 sm:gap-6">
+        <!-- Logo space -->
+        <div class="flex flex-col items-center gap-2">
+          <div class="
+                w-20 h-20 sm:w-24 sm:h-24
+                rounded-full
+                border border-white/15
+                bg-white/8
+                flex items-center justify-center
+                overflow-hidden
+              " aria-label="Logo">
+            <img id="logoPreview" class="hidden w-full h-full object-cover" alt="Logo" />
+            <span id="logoPlaceholder" class="text-white/40 text-xs select-none">LOGO</span>
+          </div>
+
+        </div>
+
+        <!-- Card -->
+        <section class="w-full max-w-[420px]">
+          <div class="
+                rounded-2xl
+                bg-[var(--card)]
+                border border-[var(--stroke)]
+                p-5 sm:p-6
+                shadow-[0_10px_28px_rgba(0,0,0,0.35)]
+              ">
+            <form hx-post="{{ url_for('register_user') }}" hx-target="#msg"
+              hx-on="htmx:beforeRequest: validateForm(event)" id="registerForm" class="space-y-4">
+              <div>
+                <label for="user" class="block text-white/70 text-sm mb-2">Nome de usuário</label>
+                <input id="usuario" name="user" type="text" autocomplete="username" class="
+                      w-full h-10
+                      rounded-lg
+                      bg-transparent
+                      border border-[var(--stroke-2)]
+                      px-3
+                      text-white/90
+                      outline-none
+                      focus:border-white/35
+                      focus:ring-2 focus:ring-white/10
+                    " />
+              </div>
+
+              <div>
+                <label for="senha" class="block text-white/70 text-sm mb-2">Senha</label>
+                <div class="relative">
+                  <input id="senha" name="senha" type="password" autocomplete="new-password" class="
+                        w-full h-10
+                        rounded-lg
+                        bg-transparent
+                        border border-[var(--stroke-2)]
+                        px-3 pr-20
+                        text-white/90
+                        outline-none
+                        focus:border-white/35
+                        focus:ring-2 focus:ring-white/10
+                      " />
+                  <button id="toggleSenha" type="button" class="
+                        absolute right-3 top-1/2 -translate-y-1/2
+                        text-white/55 text-xs
+                        hover:text-white/75
+                        select-none
+                      ">
+                    Mostrar
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label for="role" class="block text-white/70 text-sm mb-2">Tipo de usuário</label>
+                <select id="tipo" name="role" class="
+                      w-full h-10
+                      rounded-lg
+                      bg-transparent
+                      border border-[var(--stroke-2)]
+                      px-3
+                      text-white/90
+                      outline-none
+                      focus:border-white/35
+                      focus:ring-2 focus:ring-white/10
+                      [appearance:none]
+                    ">
+                  <option value="" selected disabled class="bg-[#0b1a33] text-white/80">
+                    Selecione…
+                  </option>
+                  <option value="admin" class="bg-[#0b1a33] text-white/90">Admin</option>
+                  <option value="vendedor" class="bg-[#0b1a33] text-white/90">Vendedor</option>
+                </select>
+
+                <!-- setinha do select (decorativa) -->
+                <div class="pointer-events-none relative">
+                  <span class="absolute -mt-8 right-3 text-white/45">▾</span>
+                </div>
+              </div>
+
+              <button type="submit" class="
+                    w-full h-11
+                    rounded-full
+                    bg-[var(--btn)]
+                    text-[var(--btnText)]
+                    font-medium
+                    shadow-[0_8px_18px_rgba(0,0,0,0.35)]
+                    hover:brightness-[1.03]
+                    active:scale-[0.99]
+                    transition
+                  ">
+                Criar conta
+              </button>
+            </form>
+
+            <p id="msg" class="mt-4 hidden text-center text-white/70 text-xs"></p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+
+    // Toggle senha
+    const senha = document.getElementById("senha");
+    const toggleSenha = document.getElementById("toggleSenha");
+    toggleSenha.addEventListener("click", () => {
+      const isPassword = senha.type === "password";
+      senha.type = isPassword ? "text" : "password";
+      toggleSenha.textContent = isPassword ? "Ocultar" : "Mostrar";
+    });
+
+    function validateForm(event) {
+
+      const usuario = document.getElementById("usuario").value.trim();
+      const senha = document.getElementById("senha").value;
+      const tipo = document.getElementById("tipo").value;
+
+      console.log(usuario, senha, tipo)
+
+      if (!usuario || !senha || !tipo) {
+        event.preventDefault(); // agora é correto
+        document.getElementById("msg").textContent = "Preencha todos os campos";
+
+      }
+
+    }
+
+
+  </script>
+</body>
+
+{% include "UsersTemplates/menu_admin.html" %}
+
+
+
+</html>
