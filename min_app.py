@@ -13,6 +13,8 @@ import  secrets
 from cachelib import SimpleCache
 from functools import wraps
 from cachelib.file import FileSystemCache
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 # import webview
 # import threading
@@ -52,6 +54,15 @@ def is_valid_image(path: str) -> bool:
 
 app = Flask(__name__, static_folder='static', template_folder='templates',)
 
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_port=1
+)
+
+
 
 app.config.update(
     SECRET_KEY=secrets.token_urlsafe(192),
@@ -62,7 +73,10 @@ app.config.update(
     SESSION_COOKIE_NAME='session',
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
+    
 )
+
+
 
 
 Session(app)
@@ -311,9 +325,9 @@ def logout():
    return redirect(url_for('login'))
 
 if __name__ == '__main__':
-   # ssl_context=context_ssl
    # threading.Thread(target=socketio.run(app, debug=True, use_reloader=True, port=3000)).start()
-   asyncio.run(socketio.run(app, debug=True, use_reloader=True, port=3000, ))
+   
+   asyncio.run(socketio.run(app, debug=True, use_reloader=True, port=3000))
 
    # webview.create_window('GrelhosBurguer', app, frameless=False, easy_drag=True, min_size=(1400, 900))
    # asyncio.run(webview.start(http_server=True, private_mode=False, debug=True, http_port=3000), debug=True)
