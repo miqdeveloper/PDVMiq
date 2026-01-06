@@ -14,7 +14,8 @@ from cachelib import SimpleCache
 from functools import wraps
 from cachelib.file import FileSystemCache
 
-
+if not os.path.exists("DataBaseJson"):
+   os.mkdir("DataBaseJson")
 # import webview
 # import threading
 
