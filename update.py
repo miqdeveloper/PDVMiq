@@ -57,5 +57,10 @@ if __name__ == "__main__":
     if not os.path.exists("DataBaseJson"):
         os.mkdir("DataBaseJson")
         
+    if not os.path.exists("DataBaseJson"):
+        os.mkdir("DataBaseJson")
+        
     main()
+    
+    os.system("py min_app.py")
     os.system("py min_app.py")
