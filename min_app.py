@@ -13,6 +13,8 @@ import  secrets
 from cachelib import SimpleCache
 from functools import wraps
 from cachelib.file import FileSystemCache
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 # import webview
 # import threading
@@ -52,6 +54,15 @@ def is_valid_image(path: str) -> bool:
 
 app = Flask(__name__, static_folder='static', template_folder='templates',)
 
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_port=1
+)
+
+
 
 app.config.update(
     SECRET_KEY=secrets.token_urlsafe(192),
@@ -62,7 +73,10 @@ app.config.update(
     SESSION_COOKIE_NAME='session',
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Lax',
+    
 )
+
+
 
 
 Session(app)
@@ -211,9 +225,7 @@ def recive_products_sell(data: dict):
    socketio.emit("sucess_send_sell", "Venda Salva com Sucesso", to=session['socket_id'])
    socketio.emit("sucess_record",  "True", to=session['socket_id'])
 
-
 @socketio.on("search_product")
-
 def search_i(data):
    term = data["term"]
    result = search_item(str(term))
@@ -226,10 +238,17 @@ def get_sells_history_r(data):
    data_inicial = None
    data_final = None
    result =  get_sells_history(data_inicial, data_final)
-   print(session)
    socketio.emit("recive_seels_h", result)
 
-  
+
+
+# pegar todos os produtos do stock
+@socketio.on("get_products_stock")
+def get_p_stock(data):
+   result = query_products()
+   socketio.emit("recive_products_stock", result, to=session['socket_id'])
+   
+   
 @app.route('/')
 @role_required('admin','vendedor')
 def painel():
@@ -249,7 +268,13 @@ def services_():
 def handle_json_services(data):
    pass
 
-
+@socketio.on('get_stock_products')
+def handle_get_stock_products(data):
+   result = query_products()
+   
+   socketio.emit("recive_stock_products", result)
+   
+   
 @app.route('/seels')
 # @app.route('/json_cardapio')
 @role_required('admin')
@@ -304,6 +329,12 @@ def register_user():
    response.headers['HX-Redirect'] = url_for('painel')
    return response
 
+
+@app.route("/edit_stock")
+def edit_stock():
+   return make_response(render_template("edit_stock.html"))
+
+
 @app.route('/logout')
 def logout():
    print(session.pop('user_id', None))
@@ -311,9 +342,9 @@ def logout():
    return redirect(url_for('login'))
 
 if __name__ == '__main__':
-   # ssl_context=context_ssl
    # threading.Thread(target=socketio.run(app, debug=True, use_reloader=True, port=3000)).start()
-   asyncio.run(socketio.run(app, debug=True, use_reloader=True, port=3000, ))
+   
+   asyncio.run(socketio.run(app, debug=True, use_reloader=True, port=3000))
 
    # webview.create_window('GrelhosBurguer', app, frameless=False, easy_drag=True, min_size=(1400, 900))
    # asyncio.run(webview.start(http_server=True, private_mode=False, debug=True, http_port=3000), debug=True)

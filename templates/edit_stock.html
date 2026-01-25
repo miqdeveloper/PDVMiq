@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+  {% include 'scriptsGeral.html' %}
+
+<style>
+  body {
+    background-color: #09142c;
+    color: #e7eef8;
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #071024;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #0b2a4a;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #1e90ff;
+  }
+
+  :root {
+    --bg-outer: #050a14;
+    --frame-top: #16356a;
+    --frame-mid: #0b1a33;
+    --frame-bot: #071226;
+
+    --card: rgba(19, 44, 87, 0.62);
+    --stroke: rgba(255, 255, 255, 0.10);
+    --stroke-2: rgba(255, 255, 255, 0.18);
+
+    --btn: #79c1ff;
+    --btnText: #0b1a33;
+    --link: #8fc6ff;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: radial-gradient(1200px 700px at 10% 10%, rgba(41, 99, 190, 0.16), transparent 60%),
+      radial-gradient(900px 600px at 90% 40%, rgba(70, 160, 255, 0.10), transparent 55%),
+      var(--bg-outer);
+  }
+
+  .soft-glow {
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+</style>
+
+
+<body>
+  <div class="p-6">
+    <!-- Título -->
+    <h1 class="text-2xl font-bold text-white mb-6">
+      Gestão de Estoque
+    </h1>
+
+    <!-- Container dos produtos -->
+    <div id="product-list-container" class="space-y-4">
+
+      <!-- Card do produto -->
+      
+      <!-- Fim do card -->
+
+    </div>
+    <!-- Fim do container -->
+  </div>
+  <script src="{{ url_for('static', filename='js/stock_interact.js') }}"></script>
+
+</body>
+
+
+{% include "modal_stock.html" %}
+  <!-- Erro ao gravar no banco de dados -->
+
+  {% include "alertas.html" %}
+
+  {% if s_r == "admin" %}
+  
+      {% include "UsersTemplates/menu_admin.html" %}
+  {% else %}
+      {% include "menu.html" %}
+  {% endif %}
+
+</html>

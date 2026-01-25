@@ -1,6 +1,6 @@
 <!-- Menu Floating -->
 
-<div class=" z-1999 flex flex-col fixed bottom-30 right-10 z-50 flex flex-col items-end gap-5 text-base text-white">
+<div class=" z-1999 flex flex-col fixed bottom-15 right-10 z-50 flex flex-col items-end gap-5 text-base text-white">
 
   <!-- Dropdown Menu -->
   <div id="menuDropdown"
@@ -49,6 +49,14 @@
         class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📦</span>
 
       Cadastrar no Stock
+    </button>
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📝</span>
+      <a href="{{ url_for('edit_stock') }}">Editar Stock</a>
+
     </button>
 
 
