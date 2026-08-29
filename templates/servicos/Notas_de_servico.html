@@ -1,22 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ordens de Serviço</title>
-
-  {% include "servicos/scripts_services.html" %}
-
-</head>
+{% include 'servicos/scripts_services.html' %}
 
 <style>
   body {
     background-color: #09142c;
     color: #e7eef8;
+    min-height: 100dvh;
+    background: radial-gradient(1200px 700px at 10% 10%, rgba(41, 99, 190, 0.16), transparent 60%),
+      radial-gradient(900px 600px at 90% 40%, rgba(70, 160, 255, 0.10), transparent 55%),
+      #050a14;
   }
 
-  /* Custom Scrollbar for a premium feel */
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -33,156 +29,127 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #1e90ff;
   }
+
+  /* Observer slots layout (igual a vendas/seels.html) */
+  #item_container {
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .os-slot {
+    min-height: 100px;
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.36s ease, transform 0.36s ease;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.06);
+    padding: 6px;
+    box-sizing: border-box;
+    background: transparent;
+  }
+
+  .os-slot.rendered {
+    opacity: 1;
+    transform: translateY(0);
+    border: none;
+  }
 </style>
 
-<body>
+<body class="m-6">
 
   <!-- Container Principal -->
-  <div class=" p-8 relative w-full  mx-auto space-y-8 animate-fade-in">
-
-
-
+  <div class="p-4 relative w-full max-w-6xl mx-auto space-y-6">
 
     <!-- Cabeçalho -->
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold">Ordem de Serviço</h1>
-
-    </div>
-
-    <!--  dash board painel -->
-    <div
-      class="top-0 right-0 left-0 z-1000  backdrop-blur-sm  m-2 sm:m-4  box-content  bg-blue-900/50  border border-white/9 rounded-2xl p-3 flex items-center justify-between shadow-xl">
-
-      <div class="flex flex-col gap-4">
-        <div class="w-40 h-30 box-border flex flex-col p-3 bg-red-800 border border-white/9 rounded-2xl shadow-xl">
-          <span class="text-text-secondary text-sm font-medium mb-3">Ordems - Abertas: </span>
-          <span class="text-3xl font-bold text-brand-light tracking-tight" id="total_notas">0</span>
-        </div>
-
-        <div class="w-40 h-30 box-border flex flex-col p-3 bg-green-800 border border-white/9 rounded-2xl shadow-xl">
-          <span class="text-text-secondary text-sm font-medium mb-2">Ordems - Fechadas: </span>
-          <span class="text-3xl font-bold text-brand-light tracking-tight" id="total_notas fechadas">0</span>
-        </div>
-
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Ordens de Serviço</h1>
+        <p class="text-xs text-slate-400 mt-1">Gerenciamento e status de serviços de manutenção</p>
       </div>
 
-      <div class="flex flex-col gap-3 w-[150px] box-content ">
-
-
-        <button onclick=''
-          class="bg-gradient-to-r from-brand-light to-brand-DEFAULT text-white px-6 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(46,179,255,0.3)] hover:shadow-[0_0_25px_rgba(46,179,255,0.5)] hover:scale-105 transition-all duration-300 flex items-center gap-2 group">
-
-          Nova Ordem
-        </button>
-
-        <button onclick='limparSacola()'
-          class="bg-gradient-to-r  text-white px-6 py-3 rounded-full font-medium shadow-[0_0_20px_rgba(46,179,255,0.3)] hover:shadow-[0_0_25px_rgba(46,179,255,0.5)] hover:scale-105 transition-all duration-300 flex items-center gap-2 group">
-
-          Limpar Sacola
-        </button>
-      </div>
-
-
+      <button onclick="abrirModalNovaOs()"
+        class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg hover:shadow-indigo-500/20 hover:scale-105 transition-all duration-200 flex items-center gap-2 text-sm">
+        <span>➕</span> Nova Ordem
+      </button>
     </div>
 
+    <!-- Dashboard Painel Totalizadores -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-gradient-to-br from-red-900/60 to-red-950/80 border border-red-500/20 rounded-xl p-4 shadow-xl flex flex-col justify-between">
+        <span class="text-red-300 text-xs font-semibold uppercase tracking-wider">Ordens - Abertas</span>
+        <span class="text-3xl font-extrabold text-red-200 mt-2 tracking-tight" id="total_abertas">0</span>
+      </div>
 
-
+      <div class="bg-gradient-to-br from-emerald-900/60 to-emerald-950/80 border border-emerald-500/20 rounded-xl p-4 shadow-xl flex flex-col justify-between">
+        <span class="text-emerald-300 text-xs font-semibold uppercase tracking-wider">Ordens - Fechadas</span>
+        <span class="text-3xl font-extrabold text-emerald-200 mt-2 tracking-tight" id="total_fechadas">0</span>
+      </div>
+    </div>
 
     <!-- Campo de Pesquisa -->
-    <div class="mb-4">
-      <input type="text" placeholder="Pesquisar por cliente, telefone, modelo..."
-        class="w-full px-4 py-2 text-gray-800 rounded focus:outline-none" />
+    <div class="relative w-full">
+      <input type="text" id="search_os" placeholder="🔎 Pesquisar por cliente, telefone, aparelho ou problema..."
+        class="w-full px-4 py-3 bg-slate-900/80 border border-slate-700/80 text-white rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition shadow-inner placeholder-slate-500" />
     </div>
 
-    <!-- Lista de Notas -->
-    <div class="space-y-4">
-
-      <!-- Nota 1 -->
-      <div class="bg-blue-800 rounded p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="font-bold">João Souza</p>
-            <p class="text-sm text-gray-300">11955275300</p>
-          </div>
-          <button class="text-gray-300 hover:text-white text-lg">&#8942;</button>
-        </div>
-        <p class="text-sm text-gray-300 mt-2">29/01/2024 08:30</p>
-        <p class="mt-1">Samsung Galaxy J7 Prime</p>
-        <p class="mt-1 font-semibold">R$ 1200,00</p>
-        <p class="text-sm text-gray-400">Tela quebrada</p>
-      </div>
-
-      <!-- Nota 2 -->
-      <div class="bg-blue-800 rounded p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="font-bold">Pedro Scarlapon</p>
-            <p class="text-sm text-gray-300">11959260702</p>
-          </div>
-          <button class="text-gray-300 hover:text-white text-lg">&#8942;</button>
-        </div>
-        <p class="text-sm text-gray-300 mt-2">28/01/2024 18:15</p>
-        <p class="mt-1">iPhone 11</p>
-        <p class="mt-1 font-semibold">R$ 700,00</p>
-        <p class="text-sm text-gray-400">Bateria descarregando</p>
-      </div>
-
-      <!-- Nota 3 -->
-      <div class="bg-blue-800 rounded p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="font-bold">Erika Fernanda</p>
-            <p class="text-sm text-gray-300">11950159707</p>
-          </div>
-          <button class="text-gray-300 hover:text-white text-lg">&#8942;</button>
-        </div>
-        <p class="text-sm text-gray-300 mt-2">25/01/2024 18:15</p>
-        <p class="mt-1">Touch não responde</p>
-        <p class="mt-1 font-semibold">R$ 0,00</p>
-      </div>
-
-      <!-- Nota 4 -->
-      <div class="bg-blue-800 rounded p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="font-bold">Carlos Oliveira</p>
-            <p class="text-sm text-gray-300">11949189954</p>
-          </div>
-          <button class="text-gray-300 hover:text-white text-lg">&#8942;</button>
-        </div>
-        <p class="text-sm text-gray-300 mt-2">25/01/2024 17:35</p>
-        <p class="mt-1">Samsung Galaxy S10</p>
-        <p class="mt-1 font-semibold">R$ 0,00</p>
-        <p class="text-sm text-gray-400">Telefone não liga</p>
-      </div>
-
-      <!-- Nota 5 -->
-      <div class="bg-blue-800 rounded p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="font-bold">Ana Julia</p>
-            <p class="text-sm text-gray-300">11949189954</p>
-          </div>
-          <button class="text-gray-300 hover:text-white text-lg">&#8942;</button>
-        </div>
-        <p class="text-sm text-gray-300 mt-2">25/01/2024 12:35</p>
-        <p class="mt-1">Samsung Galaxy S9</p>
-        <p class="mt-1 font-semibold">R$ 0,00</p>
-        <p class="text-sm text-gray-400">Telefone risca</p>
-      </div>
-
+    <!-- Lista de Notas (Container do IntersectionObserver) -->
+    <div id="item_container" class="space-y-3 pr-1">
+      <!-- Slots criados dinamicamente e observados pelo IntersectionObserver -->
     </div>
-
 
   </div>
-
-
 
   {% include "alertas.html" %}
 
   {% include "menu.html" %}
 
+  <!-- Modal Nova / Editar OS -->
+  <div id="modal_os" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[2000] px-4">
+    <div class="bg-[#0b1a33] border border-slate-700/80 shadow-2xl rounded-2xl w-full max-w-lg p-6 text-white relative animate-fade-in-up">
+      <div class="flex justify-between items-center mb-5 border-b border-slate-700/60 pb-3">
+        <h2 class="text-lg font-bold text-indigo-300" id="modal_os_title">Nova Ordem de Serviço</h2>
+        <button type="button" onclick="fecharModalOs()" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <form id="form_os" class="space-y-4">
+        <input type="hidden" id="os_id_edit" value="">
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Cliente *</label>
+          <input type="text" id="os_cliente" class="w-full px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-indigo-500 focus:outline-none" placeholder="Nome do cliente" required>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Telefone</label>
+            <input type="text" id="os_telefone" class="w-full px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-indigo-500 focus:outline-none" placeholder="(11) 99999-9999">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Aparelho / Modelo</label>
+            <input type="text" id="os_aparelho" class="w-full px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-indigo-500 focus:outline-none" placeholder="Ex: iPhone 11, S20">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Problema / Defeito</label>
+          <input type="text" id="os_problema" class="w-full px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-indigo-500 focus:outline-none" placeholder="Ex: Tela quebrada, não carrega">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Observações</label>
+          <input type="text" id="os_observacoes" class="w-full px-3.5 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white text-sm focus:border-indigo-500 focus:outline-none" placeholder="Detalhes adicionais...">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-3 border-t border-slate-700/60">
+          <button type="button" onclick="fecharModalOs()" class="px-4 py-2 text-xs font-medium bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 transition">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition shadow-md shadow-indigo-600/30">Salvar Ordem</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
 </body>
-
 </html>

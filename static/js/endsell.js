@@ -85,9 +85,16 @@ function send_sell(typePay) {
 
 
   socket.once("sucess_send_sell", (data_sucess) => {
-    let sucess_ = document.querySelector("#modal_sucesso  p")
-    sucess_.textContent = `${data_sucess}`
-    abrirModalSucesso()
+    let sucess_ = document.querySelector("#modal_sucesso  p");
+    if (sucess_) sucess_.textContent = `${data_sucess}`;
+    if (typeof abrirModalSucesso === "function") abrirModalSucesso();
+    if (typeof limparSacola === "function") {
+      limparSacola();
+    }
+    pagamentoSelecionado = null;
+    document.querySelectorAll(".btnPagamento").forEach(b => {
+      b.classList.remove("ring-4", "ring-green-400", "scale-105");
+    });
   });
 }
   

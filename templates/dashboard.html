@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/tailwindcss.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/motion.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/menu.js') }}"></script>
+
+  <!-- Chart.js para visualização gráfica profissional -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Métricas - Leandro Celulares</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/painel.css') }}">
+</head>
+
+<style>
+  body {
+    background-color: #050a14;
+    color: #e7eef8;
+    min-height: 100dvh;
+    background: radial-gradient(1200px 700px at 10% 10%, rgba(41, 99, 190, 0.16), transparent 60%),
+      radial-gradient(900px 600px at 90% 40%, rgba(70, 160, 255, 0.10), transparent 55%),
+      #050a14;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #071024;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #0b2a4a;
+    border-radius: 4px;
+  }
+</style>
+
+<body class="p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-8 animate-fade-in">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">📊</span>
+          <h1 class="text-3xl font-extrabold tracking-tight text-white">Dashboard de Métricas & Gráficos</h1>
+        </div>
+        <p class="text-sm text-slate-400 mt-1">Painel Gerencial de Desempenho em Tempo Real (Exclusivo Administrador)</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="atualizarMetricas()" class="bg-indigo-600/80 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 shadow-lg">
+          🔄 Atualizar Dados
+        </button>
+        <span class="text-xs text-slate-500" id="gerado_em">Atualizando...</span>
+      </div>
+    </div>
+
+    <!-- Top KPI Cards Grid (6 Cards) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      
+      <!-- Faturamento Total -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Faturamento Total</span>
+          <span class="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400 text-lg">💰</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_faturamento">R$ 0,00</span>
+          <p class="text-[11px] text-slate-400 mt-0.5" id="kpi_vendas_sub">0 vendas</p>
+        </div>
+      </div>
+
+      <!-- Vendas Hoje -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-400">Vendas Hoje</span>
+          <span class="p-1.5 bg-blue-500/10 rounded-lg text-blue-400 text-lg">📅</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_vendas_hoje">R$ 0,00</span>
+          <p class="text-[11px] text-slate-400 mt-0.5" id="kpi_vendas_hoje_sub">0 vendas hoje</p>
+        </div>
+      </div>
+
+      <!-- Ticket Médio -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">Ticket Médio</span>
+          <span class="p-1.5 bg-indigo-500/10 rounded-lg text-indigo-400 text-lg">🏷️</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_ticket">R$ 0,00</span>
+          <p class="text-[11px] text-slate-400 mt-0.5">Média por venda</p>
+        </div>
+      </div>
+
+      <!-- Valor Estoque -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-purple-400">Valor Estoque</span>
+          <span class="p-1.5 bg-purple-500/10 rounded-lg text-purple-400 text-lg">📦</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_valor_estoque">R$ 0,00</span>
+          <p class="text-[11px] text-slate-400 mt-0.5" id="kpi_produtos_sub">0 itens em estoque</p>
+        </div>
+      </div>
+
+      <!-- Alertas de Estoque -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-400">Pouco Estoque</span>
+          <span class="p-1.5 bg-amber-500/10 rounded-lg text-amber-400 text-lg">⚠️</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_alerta_estoque">0</span>
+          <p class="text-[11px] text-slate-400 mt-0.5">produtos no limite</p>
+        </div>
+      </div>
+
+      <!-- Taxa Conclusão OS -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col justify-between backdrop-blur-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-sky-400">Conclusão OS</span>
+          <span class="p-2 bg-sky-500/10 rounded-lg text-sky-400 text-lg">🛠️</span>
+        </div>
+        <div class="mt-3">
+          <span class="text-2xl font-black text-white tracking-tight" id="kpi_taxa_os">0%</span>
+          <p class="text-[11px] text-slate-400 mt-0.5" id="kpi_os_sub">0 abertas / 0 fechadas</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SEÇÃO DE GRÁFICOS (Chart.js Visualizations) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Gráfico 1: Evolução das Vendas por Data (Linha) -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          📈 Evolução do Faturamento por Data (R$)
+        </h2>
+        <div class="h-64 relative">
+          <canvas id="chartEvolucaoVendas"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Formas de Pagamento (Rosca) -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          💳 Faturamento por Forma de Pagamento
+        </h2>
+        <div class="h-64 relative flex justify-center items-center">
+          <canvas id="chartPagamentos"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 3: Vendas por Vendedor (Barras) -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          👨‍💻 Desempenho de Vendas por Vendedor
+        </h2>
+        <div class="h-64 relative">
+          <canvas id="chartVendedores"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 4: Distribuição por Categoria de Estoque (Pizza) -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          📦 Distribuição de Itens por Categoria
+        </h2>
+        <div class="h-64 relative flex justify-center items-center">
+          <canvas id="chartCategorias"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Section: Tabelas Detalhadas & Top Produtos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- Produtos Mais Vendidos -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 class="text-base font-bold text-white flex items-center gap-2">
+          🏆 Top 5 Produtos Mais Vendidos
+        </h2>
+        <div class="space-y-3" id="lista_top_produtos">
+          <p class="text-slate-500 text-sm">Carregando dados...</p>
+        </div>
+      </div>
+
+      <!-- Resumo Notas de Serviço -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            🔧 Notas de Serviço
+          </h2>
+          <div class="grid grid-cols-2 gap-4 text-center">
+            <div class="bg-red-950/40 border border-red-500/20 p-4 rounded-xl">
+              <span class="text-xs text-red-300 uppercase font-semibold">Abertas</span>
+              <p class="text-3xl font-extrabold text-red-400 mt-1" id="os_card_abertas">0</p>
+            </div>
+            <div class="bg-emerald-950/40 border border-emerald-500/20 p-4 rounded-xl">
+              <span class="text-xs text-emerald-300 uppercase font-semibold">Fechadas</span>
+              <p class="text-3xl font-extrabold text-emerald-400 mt-1" id="os_card_fechadas">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800">
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span>Taxa Global de Conclusão de OS</span>
+            <span id="os_progresso_label">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+            <div id="os_progresso_bar" class="bg-gradient-to-r from-blue-500 to-emerald-500 h-full w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Novos KPIs de Notas de Serviço -->
+        <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-800">
+          <div class="bg-indigo-950/40 border border-indigo-500/20 p-3 rounded-xl">
+            <span class="text-[10px] text-indigo-300 uppercase font-semibold">Valor Total OS</span>
+            <p class="text-lg font-extrabold text-indigo-400 mt-1" id="kpi_valor_os">R$ 0,00</p>
+          </div>
+          <div class="bg-blue-950/40 border border-blue-500/20 p-3 rounded-xl">
+            <span class="text-[10px] text-blue-300 uppercase font-semibold">OS Hoje</span>
+            <p class="text-lg font-extrabold text-blue-400 mt-1" id="kpi_os_hoje">0</p>
+          </div>
+          <div class="bg-emerald-950/40 border border-emerald-500/20 p-3 rounded-xl">
+            <span class="text-[10px] text-emerald-300 uppercase font-semibold">Ticket Médio</span>
+            <p class="text-lg font-extrabold text-emerald-400 mt-1" id="kpi_ticket_os">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+      <!-- Novas seções de métricas avançadas OS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+        <!-- Receita Mensal OS -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">📈 Receita OS Mensal (6m)</h2>
+          <div class="h-64 relative">
+            <canvas id="chartOsMensal"></canvas>
+          </div>
+          <div class="flex justify-between items-center mt-4 text-sm">
+            <span class="text-emerald-400 font-semibold" id="kpi_variacao_mensal">+0%</span>
+            <span class="text-slate-400">vs mês anterior</span>
+          </div>
+        </div>
+
+        <!-- Top Defeitos -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">🔍 Top 10 Defeitos/Problemas</h2>
+          <div class="space-y-2" id="lista_top_defeitos">
+            <p class="text-slate-500 text-sm">Carregando...</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+        <!-- Receita por Técnico -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">👨‍🔧 Receita por Técnico</h2>
+          <div class="space-y-3" id="lista_receita_tecnico">
+            <p class="text-slate-500 text-sm">Carregando...</p>
+          </div>
+        </div>
+
+        <!-- Status Pagamento OS -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">💰 Financeiro OS</h2>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-emerald-950/40 border border-emerald-500/20 p-4 rounded-xl text-center">
+              <span class="text-xs text-emerald-300 uppercase font-semibold">Recebido</span>
+              <p class="text-2xl font-extrabold text-emerald-400 mt-1" id="kpi_valor_recebido">R$ 0,00</p>
+              <span class="text-xs text-slate-400" id="kpi_qtd_pagas">0 OS</span>
+            </div>
+            <div class="bg-amber-950/40 border border-amber-500/20 p-4 rounded-xl text-center">
+              <span class="text-xs text-amber-300 uppercase font-semibold">A Receber</span>
+              <p class="text-2xl font-extrabold text-amber-400 mt-1" id="kpi_valor_a_receber">R$ 0,00</p>
+              <span class="text-xs text-slate-400" id="kpi_qtd_pendentes">0 OS</span>
+            </div>
+          </div>
+          <div class="pt-4 border-t border-slate-800">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Taxa de Pagamento</span>
+              <span id="kpi_taxa_pagamento">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+              <div id="kpi_taxa_pagamento_bar" class="bg-gradient-to-r from-amber-500 to-emerald-500 h-full w-0 transition-all duration-500"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- OS Estagnadas (alerta) -->
+      <div class="bg-red-950/30 border border-red-500/30 rounded-2xl p-6 shadow-xl mt-6" id="card_os_estagnadas" style="display: none;">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-bold text-red-300 flex items-center gap-2">⚠️ OS Estagnadas (>7 dias)</h2>
+          <span class="text-xs text-red-400 bg-red-950/40 px-2 py-1 rounded" id="kpi_qtd_estagnadas">0</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-slate-400 border-b border-slate-700">
+                <th class="pb-2">Cliente</th>
+                <th class="pb-2">Aparelho</th>
+                <th class="pb-2">Técnico</th>
+                <th class="pb-2">Dias Aberta</th>
+                <th class="pb-2 text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tabela_os_estagnadas" class="text-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  {% include "UsersTemplates/menu_admin.html" %}
+
+  <script>
+    const socket = io();
+
+    // Chart instances references
+    let chartEvolucaoInstance = null;
+    let chartPagamentosInstance = null;
+    let chartVendedoresInstance = null;
+    let chartCategoriasInstance = null;
+
+    function atualizarMetricas() {
+      socket.emit("get_dashboard_metrics", socket.id);
+    }
+
+    function formatBRL(val) {
+      return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    socket.on("connect", () => {
+      atualizarMetricas();
+    });
+
+    socket.on("receive_dashboard_metrics", (data) => {
+      if (!data) return;
+
+      const v = data.vendas || {};
+      const e = data.estoque || {};
+      const os = data.ordens_servico || {};
+
+      // 1. Preencher KPIs
+      document.getElementById("kpi_faturamento").textContent = formatBRL(v.total_faturamento);
+      document.getElementById("kpi_vendas_sub").textContent = `${v.total_vendas || 0} vendas realizadas`;
+      
+      document.getElementById("kpi_vendas_hoje").textContent = formatBRL(v.faturamento_hoje);
+      document.getElementById("kpi_vendas_hoje_sub").textContent = `${v.vendas_hoje_qtd || 0} vendas hoje`;
+
+      document.getElementById("kpi_ticket").textContent = formatBRL(v.ticket_medio);
+      
+      document.getElementById("kpi_valor_estoque").textContent = formatBRL(e.valor_total_estoque);
+      document.getElementById("kpi_produtos_sub").textContent = `${e.total_itens_fisicos || 0} itens (${e.total_produtos || 0} prods)`;
+
+      document.getElementById("kpi_alerta_estoque").textContent = e.alerta_pouco_estoque || 0;
+      
+      document.getElementById("kpi_taxa_os").textContent = `${os.taxa_conclusao || 0}%`;
+      document.getElementById("kpi_os_sub").textContent = `${os.abertas || 0} abertas / ${os.fechadas || 0} fechadas`;
+
+      document.getElementById("gerado_em").textContent = `Atualizado: ${data.gerado_em || '-'}`;
+
+      // 2. Gráfico 1: Evolução Diária das Vendas (Linha)
+      const diagData = v.grafico_diario || { labels: [], valores: [] };
+      const ctx1 = document.getElementById("chartEvolucaoVendas").getContext("2d");
+      if (chartEvolucaoInstance) chartEvolucaoInstance.destroy();
+      chartEvolucaoInstance = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: diagData.labels,
+          datasets: [{
+            label: 'Faturamento (R$)',
+            data: diagData.valores,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 3,
+            pointBackgroundColor: '#60a5fa',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      // 3. Gráfico 2: Formas de Pagamento (Rosca / Doughnut)
+      const pMap = v.por_pagamento || {};
+      const pagLabels = Object.keys(pMap);
+      const pagValores = pagLabels.map(k => pMap[k].total);
+      const ctx2 = document.getElementById("chartPagamentos").getContext("2d");
+      if (chartPagamentosInstance) chartPagamentosInstance.destroy();
+      chartPagamentosInstance = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: pagLabels,
+          datasets: [{
+            data: pagValores,
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'],
+            borderWidth: 2,
+            borderColor: '#0f172a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#e2e8f0', font: { size: 12 } } }
+          }
+        }
+      });
+
+      // 4. Gráfico 3: Desempenho por Vendedor (Barras / Bar)
+      const vendMap = v.por_vendedor || {};
+      const vendLabels = Object.keys(vendMap);
+      const vendValores = vendLabels.map(k => vendMap[k].total);
+      const ctx3 = document.getElementById("chartVendedores").getContext("2d");
+      if (chartVendedoresInstance) chartVendedoresInstance.destroy();
+      chartVendedoresInstance = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+          labels: vendLabels,
+          datasets: [{
+            label: 'Total Vendido (R$)',
+            data: vendValores,
+            backgroundColor: 'rgba(99, 102, 241, 0.8)',
+            borderColor: '#6366f1',
+            borderRadius: 8,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+
+      // 5. Gráfico 4: Categorias de Estoque (Pie / Pizza)
+      const catMap = e.por_categoria || {};
+      const catLabels = Object.keys(catMap);
+      const catValores = catLabels.map(k => catMap[k]);
+      const ctx4 = document.getElementById("chartCategorias").getContext("2d");
+      if (chartCategoriasInstance) chartCategoriasInstance.destroy();
+      chartCategoriasInstance = new Chart(ctx4, {
+        type: 'pie',
+        data: {
+          labels: catLabels,
+          datasets: [{
+            data: catValores,
+            backgroundColor: ['#38bdf8', '#a855f7', '#f43f5e', '#eab308', '#22c55e'],
+            borderWidth: 2,
+            borderColor: '#0f172a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#e2e8f0', font: { size: 12 } } }
+          }
+        }
+      });
+
+      // 6. Top Produtos
+      const topContainer = document.getElementById("lista_top_produtos");
+      topContainer.innerHTML = "";
+      const topProds = v.top_produtos || [];
+      if (topProds.length === 0) {
+        topContainer.innerHTML = `<p class="text-slate-500 text-sm">Nenhum produto vendido ainda.</p>`;
+      } else {
+        topProds.forEach((p, idx) => {
+          topContainer.innerHTML += `
+            <div class="flex justify-between items-center bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+              <div class="flex items-center gap-3">
+                <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">#${idx + 1}</span>
+                <span class="font-medium text-sm text-slate-200">${p.nome}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-bold text-white text-sm block">${p.qtd_vendida} un.</span>
+                <span class="text-xs text-slate-400">${formatBRL(p.preco)} cada</span>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      // 7. OS Card
+      document.getElementById("os_card_abertas").textContent = os.abertas || 0;
+      document.getElementById("os_card_fechadas").textContent = os.fechadas || 0;
+      const pct = os.taxa_conclusao || 0;
+      document.getElementById("os_progresso_label").textContent = `${pct}% concluídas`;
+      document.getElementById("os_progresso_bar").style.width = `${pct}%`;
+
+      //8. Novos KPIs Notas Serviço
+            document.getElementById("kpi_valor_os").textContent = formatBRL(os.valor_total || 0);
+            document.getElementById("kpi_os_hoje").textContent = `${os.abertas_hoje || 0} abertas / ${os.fechadas_hoje || 0} fechadas`;
+            document.getElementById("kpi_ticket_os").textContent = formatBRL(os.ticket_medio || 0);
+
+            //9. Gráfico Receita Mensal OS
+            const osMensal = os.grafico_receita_mensal || { labels: [], valores: [] };
+            const ctxOsMensal = document.getElementById("chartOsMensal")?.getContext("2d");
+            if (ctxOsMensal) {
+              if (window.chartOsMensalInstance) window.chartOsMensalInstance.destroy();
+              window.chartOsMensalInstance = new Chart(ctxOsMensal, {
+                type: 'bar',
+                data: {
+                  labels: osMensal.labels,
+                  datasets: [{
+                    label: 'Receita OS (R$)',
+                    data: osMensal.valores,
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderRadius: 6,
+                    borderWidth: 1
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    y: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                  }
+                }
+              });
+            }
+
+            // Variacao mensal
+            const variacao = os.variacao_mensal || 0;
+            document.getElementById("kpi_variacao_mensal").textContent = `${variacao >= 0 ? '+' : ''}${variacao.toFixed(1)}%`;
+            document.getElementById("kpi_variacao_mensal").className = variacao >= 0 ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold';
+
+            //10. Top Defeitos
+            const defeitosContainer = document.getElementById("lista_top_defeitos");
+            defeitosContainer.innerHTML = "";
+            const topDefeitos = os.top_defeitos || [];
+            if (topDefeitos.length === 0) {
+              defeitosContainer.innerHTML = '<p class="text-slate-500 text-sm">Nenhum defeito registrado ainda.</p>';
+            } else {
+              topDefeitos.forEach((d, idx) => {
+                defeitosContainer.innerHTML += `
+                  <div class="flex justify-between items-center bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                      <span class="w-6 h-6 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center font-bold text-xs">#${idx + 1}</span>
+                      <span class="font-medium text-sm text-slate-200">${d.defeito}</span>
+                    </div>
+                    <span class="font-bold text-red-300 text-sm">${d.qtd} OS</span>
+                  </div>
+                `;
+              });
+            }
+
+            //11. Receita por Técnico
+            const tecnicoContainer = document.getElementById("lista_receita_tecnico");
+            tecnicoContainer.innerHTML = "";
+            const receitaTecnico = os.receita_por_tecnico || {};
+            const tecnicos = Object.keys(receitaTecnico);
+            if (tecnicos.length === 0) {
+              tecnicoContainer.innerHTML = '<p class="text-slate-500 text-sm">Nenhum técnico com OS faturada.</p>';
+            } else {
+              // Ordenar por valor total decrescente
+              tecnicos.sort((a, b) => (receitaTecnico[b].valor_total || 0) - (receitaTecnico[a].valor_total || 0));
+              tecnicos.forEach((t, idx) => {
+                const data = receitaTecnico[t];
+                tecnicoContainer.innerHTML += `
+                  <div class="flex justify-between items-center bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex items-center gap-3">
+                      <span class="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">#${idx + 1}</span>
+                      <span class="font-medium text-sm text-slate-200">${t}</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="font-bold text-white text-sm block">${formatBRL(data.valor_total || 0)}</span>
+                      <span class="text-xs text-slate-400">${data.qtd_os || 0} OS • Ticket: ${formatBRL(data.ticket_medio || 0)}</span>
+                    </div>
+                  </div>
+                `;
+              });
+            }
+
+            //12. Financeiro OS (Recebido vs A Receber)
+            const valorRecebido = os.valor_recebido || 0;
+            const valorAReceber = os.valor_a_receber || 0;
+            const qtdPagas = os.os_pagas || 0;
+            const qtdPendentes = os.os_pendentes || 0;
+            document.getElementById("kpi_valor_recebido").textContent = formatBRL(valorRecebido);
+            document.getElementById("kpi_valor_a_receber").textContent = formatBRL(valorAReceber);
+            document.getElementById("kpi_qtd_pagas").textContent = `${qtdPagas} OS`;
+            document.getElementById("kpi_qtd_pendentes").textContent = `${qtdPendentes} OS`;
+
+            const totalFinanceiro = valorRecebido + valorAReceber;
+            const taxaPagamento = totalFinanceiro > 0 ? (valorRecebido / totalFinanceiro * 100) : 0;
+            document.getElementById("kpi_taxa_pagamento").textContent = `${taxaPagamento.toFixed(1)}%`;
+            document.getElementById("kpi_taxa_pagamento_bar").style.width = `${taxaPagamento}%`;
+
+            //13. OS Estagnadas
+            const osEstagnadas = os.os_estagnadas || [];
+            const cardEstagnadas = document.getElementById("card_os_estagnadas");
+            const tabelaEstagnadas = document.getElementById("tabela_os_estagnadas");
+            document.getElementById("kpi_qtd_estagnadas").textContent = osEstagnadas.length;
+            if (osEstagnadas.length > 0) {
+              cardEstagnadas.style.display = "block";
+              tabelaEstagnadas.innerHTML = "";
+              osEstagnadas.forEach(osEst => {
+                tabelaEstagnadas.innerHTML += `
+                  <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+                    <td class="py-2">${osEst.cliente || '-'}</td>
+                    <td class="py-2">${osEst.aparelho || '-'}</td>
+                    <td class="py-2">${osEst.tecnico || '-'}</td>
+                    <td class="py-2 text-red-400 font-semibold">${osEst.dias_aberta} dias</td>
+                    <td class="py-2 text-right">${formatBRL(osEst.valor || 0)}</td>
+                  </tr>
+                `;
+              });
+            } else {
+              cardEstagnadas.style.display = "none";
+            }
+          });
+
+    socket.on("metrics_error", (msg) => {
+      alert(msg || "Erro ao carregar métricas.");
+    });
+  </script>
+
+</body>
+</html>

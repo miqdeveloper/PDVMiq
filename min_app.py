@@ -3,8 +3,14 @@ from flask_socketio import SocketIO, join_room, leave_room
 from flask_session import Session
 import jinja2
 from models.manageDB import query_products, insert_product, search_item, save_vendas
-from models.manageDB import  query_users_login, get_sells_history, insert_user
-from  models.manageDB import clear_tables_products
+from models.manageDB import query_users_login, get_sells_history, insert_user
+from models.manageDB import clear_tables_products
+from models.manageDB import (
+    insert_servico, list_ordens_servico, get_servico, update_servico,
+    alterar_status_servico, toggle_status_servico, delete_servico,
+    query_json_ordens, count_ordens_abertas, count_ordens_fechadas,
+)
+from models.metrics import calculate_dashboard_metrics
 import json
 import asyncio
 import ssl
@@ -191,39 +197,48 @@ def recive_products(data):
 
 @socketio.on("end_sell")
 def recive_products_sell(data: dict):
-  
-  
-   def conte_itens(sacola: list) -> int:
-     return [ item["id"] for item in sacola] 
-   
-   def calcate_total(sacola: list) -> float:
-      total = 0.0
-      for item in sacola:
-         total += float(item["preco"])
-      return total
-   
-   
-   # print("Tipo:", type(data))
-   sacola_ = data["sacola"]
-   type_pay = data["typepay"]
+   if not isinstance(data, dict):
+      socketio.emit("error_send_sell", "Envio de evento incorreto!", to=session.get('socket_id'))
+      return
+
+   sacola_ = data.get("sacola", [])
+   type_pay = data.get("typepay", "outros")
    total_itens = len(sacola_)
    
    if not sacola_:
-       socketio.emit("error_send_sell", "sacola vazia!!", to=session['socket_id'])
+       socketio.emit("error_send_sell", "Sacola vazia!!", to=session.get('socket_id'))
        return
-    
-   if not type(data) == dict:
-      # (type(data)) 
-      socketio.emit("error_send_sell", "envio de evento incorreto :) ", to=session['socket_id'])
-      return 
-   # if data:
-   
-   if not save_vendas(total_venda=calcate_total(sacola_),itens_venda=conte_itens(sacola_), quantidade_itens=total_itens, tipo_pagamento=type_pay, quem_vendeu=session['user_name']):
-   # print(sacola_, data["typepay"])
-      socketio.emit("error_send_sell", "Erro ao salvar venda!!", to=session['socket_id'])
+
+   def conte_itens(sacola: list) -> list:
+     return [item["id"] for item in sacola if isinstance(item, dict) and "id" in item]
+
+   def calcate_total(sacola: list) -> float:
+      total = 0.0
+      for item in sacola:
+         if isinstance(item, dict):
+             p_str = str(item.get("preco", 0)).replace("R$", "").replace(" ", "").replace(",", ".")
+             try:
+                 total += float(p_str)
+             except ValueError:
+                 pass
+      return total
+
+   user_name = session.get('user_name', 'admin')
+
+   if not save_vendas(
+       total_venda=calcate_total(sacola_),
+       itens_venda=conte_itens(sacola_),
+       quantidade_itens=total_itens,
+       tipo_pagamento=type_pay,
+       quem_vendeu=user_name
+   ):
+      socketio.emit("error_send_sell", "Erro ao salvar venda ou estoque insuficiente!", to=session.get('socket_id'))
       return
-   socketio.emit("sucess_send_sell", "Venda Salva com Sucesso", to=session['socket_id'])
-   socketio.emit("sucess_record",  "True", to=session['socket_id'])
+
+   socketio.emit("sucess_send_sell", "Venda Salva com Sucesso", to=session.get('socket_id'))
+   socketio.emit("sucess_record", "True", to=session.get('socket_id'))
+   # Atualiza o estoque em tempo real para todos os clientes no painel
+   socketio.emit("json_painel_event_return_products", query_products())
 
 @socketio.on("search_product")
 def search_i(data):
@@ -257,6 +272,26 @@ def painel():
    return response
 
 
+@app.route('/dashboard')
+@role_required('admin')
+def dashboard_():
+   s_r = session.get('user_role')
+   return make_response(render_template('dashboard.html', s_r=s_r))
+
+
+@socketio.on('get_dashboard_metrics')
+def handle_get_dashboard_metrics(data=None):
+   if session.get('user_role') == 'admin':
+       metrics = calculate_dashboard_metrics()
+       sid = session.get('socket_id')
+       if sid:
+           socketio.emit('receive_dashboard_metrics', metrics, to=sid)
+       else:
+           socketio.emit('receive_dashboard_metrics', metrics)
+   else:
+       socketio.emit('metrics_error', 'Acesso restrito ao Administrador', to=session.get('socket_id'))
+
+
 @app.route('/services')
 @role_required('admin','vendedor')
 def services_():
@@ -267,6 +302,68 @@ def services_():
 @socketio.on('json_services_event_load')
 def handle_json_services(data):
    pass
+
+
+# --- Ordem de Serviço: sockets ---
+
+def emit_ordens_refresh():
+    """Emite a lista atualizada de ordens e os contadores para todos os clientes."""
+    socketio.emit('recive_ordens', list_ordens_servico())
+    socketio.emit('ordens_counters', {'abertas': count_ordens_abertas(), 'fechadas': count_ordens_fechadas()})
+
+
+@socketio.on('load_ordens')
+def load_ordens(data):
+    sid = data
+    session['socket_id'] = sid
+    join_room(sid)
+    emit_ordens_refresh()
+
+
+@socketio.on('open_os')
+def handle_open_os(dados):
+    ok = insert_servico(
+        cliente=dados.get('cliente', ''),
+        telefone=dados.get('telefone', ''),
+        aparelho=dados.get('aparelho', ''),
+        problema=dados.get('problema', ''),
+        observacoes=dados.get('observacoes', ''),
+        quem_abriu=session.get('user_name', 'admin'),
+    )
+    if ok:
+        emit_ordens_refresh()
+    else:
+        socketio.emit('os_error', 'Erro ao abrir ordem de serviço', to=session.get('socket_id'))
+
+
+@socketio.on('toggle_os_status')
+def handle_toggle_os_status(dados):
+    os_id = dados.get('id')
+    if os_id and toggle_status_servico(os_id):
+        emit_ordens_refresh()
+    else:
+        socketio.emit('os_error', 'Erro ao alterar status', to=session.get('socket_id'))
+
+
+@socketio.on('edit_os')
+def handle_edit_os(dados):
+    os_id = dados.get('id')
+    fields = {k: v for k, v in dados.items() if k != 'id'}
+    if os_id and update_servico(os_id, **fields):
+        emit_ordens_refresh()
+        socketio.emit('os_success', 'Ordem atualizada com sucesso', to=session.get('socket_id'))
+    else:
+        socketio.emit('os_error', 'Erro ao editar ordem de serviço', to=session.get('socket_id'))
+
+
+@socketio.on('delete_os')
+def handle_delete_os(dados):
+    os_id = dados.get('id')
+    if os_id and delete_servico(os_id):
+        emit_ordens_refresh()
+    else:
+        socketio.emit('os_error', 'Erro ao deletar ordem de serviço', to=session.get('socket_id'))
+
 
 @socketio.on('get_stock_products')
 def handle_get_stock_products(data):
@@ -331,6 +428,7 @@ def register_user():
 
 
 @app.route("/edit_stock")
+@role_required('admin', 'vendedor')
 def edit_stock():
    return make_response(render_template("edit_stock.html"))
 

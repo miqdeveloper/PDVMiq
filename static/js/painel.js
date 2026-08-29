@@ -30,6 +30,12 @@ create_items = (obj_arr) => {
     // console.log(arg.trim() === "pop", arg.trim() === "push", arg)
 
     if (arg.trim() === "push") {
+      let qtdNoCarrinho = sacola.filter((p) => p.id === item_click.id).length;
+      let estoqueDisponivel = Number(item_click.quantidade_prd || 0);
+      if (qtdNoCarrinho >= estoqueDisponivel) {
+        alert(`Estoque insuficiente! Apenas ${estoqueDisponivel} unidades disponíveis.`);
+        return;
+      }
       sacola.push(item_click);
     }
 

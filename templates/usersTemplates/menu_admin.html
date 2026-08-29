@@ -18,10 +18,14 @@
       <span
         class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">💰</span>
       <a href="{{ url_for('painel') }}">Painel</a>
-
     </button>
 
-
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📊</span>
+      <a href="{{ url_for('dashboard_') }}">Dashboard Métricas</a>
+    </button>
 
     <button
       class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
@@ -35,10 +39,8 @@
     <button
       class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
       <span
-        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">🤵
-        <a href="{{ url_for('register') }}">Adicionar user</a>
-
-      </span>
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">🤵</span>
+      <a href="{{ url_for('register') }}">Adicionar user</a>
     </button>
 
 
@@ -56,7 +58,6 @@
       <span
         class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📝</span>
       <a href="{{ url_for('edit_stock') }}">Editar Stock</a>
-
     </button>
 
 
@@ -66,11 +67,10 @@
       <span
         class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📝</span>
       <a href="{{ url_for('services_') }}">Ordems de Servico</a>
-
     </button>
 
     <div class="border-t border-white/5 mt-2 pt-2 ">
-      <button class="w-full flex items-center gap-3 px-3 py-2.5  text-error/80 
+      <button class="w-full flex items-center gap-3 px-3 py-2.5  text-error/80
                            hover:text-error hover:bg-error/10 rounded-lg transition-colors">
         <span class="p-1.5 bg-navy-900 rounded-md">🚪</span>
         <a href="{{ url_for('logout') }}">Sair da conta</a>
@@ -80,8 +80,8 @@
   </div>
 
   <!-- Floating Main Button -->
-  <button id="menuToggle" class="  bg-[#0a1e4a]/70 w-18 h-18 rounded-full flex items-center justify-center shadow-lg 
-                   shadow-brand-DEFAULT/30 transition-all duration-300 text-white 
+  <button id="menuToggle" class="  bg-[#0a1e4a]/70 w-18 h-18 rounded-full flex items-center justify-center shadow-lg
+                   shadow-brand-DEFAULT/30 transition-all duration-300 text-white
                    hover:scale-110">
     <span id="iconMenu">☰</span>
     <span id="iconClose" class="hidden">✖</span>

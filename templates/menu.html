@@ -21,6 +21,15 @@
 
     </button>
 
+    {% if session.get('user_role') == 'admin' %}
+    <button
+      class="w-full flex items-center gap-3 px-3 py-2.5  text-text-secondary hover:text-white hover:bg-white/5 rounded-lg transition-colors group">
+      <span
+        class="p-1.5 bg-navy-900 rounded-md group-hover:bg-brand-light/20 group-hover:text-brand-light transition-colors">📊</span>
+      <a href="{{ url_for('dashboard_') }}">Dashboard Métricas</a>
+    </button>
+    {% endif %}
+
 
 
     <button

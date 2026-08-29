@@ -9,6 +9,7 @@ from datetime import datetime
 db = TinyDB(r"./DataBaseJson/stock_db.json", indent=4)
 db_vendas = TinyDB(r"./DataBaseJson/vendas_db.json", indent=4)
 db_users = TinyDB(r"./DataBaseJson/users_db.json", indent=4)
+db_ordens = TinyDB(r"./DataBaseJson/ordens_db.json", indent=4)
 
 
 def format_date(date_str: str) -> str:
@@ -118,8 +119,98 @@ def search_item(term):
     return results
 
 
+def get_os_table():
+    return db_ordens.table("ordens_servico")
+
+
+def list_ordens_servico():
+    return get_os_table().all()
+
+
+def query_json_ordens():
+    """Retorna todas as ordens de serviço como JSON string (para o frontend)."""
+    return json.dumps(get_os_table().all(), ensure_ascii=False)
+
+
+def count_ordens_abertas():
+    return len(get_os_table().search(Query().status == "aberta"))
+
+
+def count_ordens_fechadas():
+    return len(get_os_table().search(Query().status == "fechada"))
+
+
+def insert_servico(cliente, telefone, aparelho, problema, observacoes, quem_abriu):
+    table = get_os_table()
+    try:
+        table.insert({
+            "id": uuid.uuid4().hex,
+            "cliente": cliente,
+            "telefone": telefone,
+            "aparelho": aparelho,
+            "problema": problema,
+            "observacoes": observacoes,
+            "status": "aberta",
+            "quem_abriu": quem_abriu,
+            "data_abertura": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+            "data_fechamento": None,
+        })
+        return True
+    except Exception as err:
+        print(f"Erro ao gravar ordem de servico: {err}")
+        return False
+
+
+def get_servico(os_id):
+    table = get_os_table()
+    Os_q = Query()
+    result = table.get(Os_q.id == os_id)
+    if result:
+        return result
+    return None
+
+
+def update_servico(os_id, **fields):
+    table = get_os_table()
+    Os_q = Query()
+    result = table.get(Os_q.id == os_id)
+    if not result:
+        return False
+    try:
+        table.update(fields, Os_q.id == os_id)
+        return True
+    except Exception as err:
+        print(f"Erro ao atualizar ordem de servico: {err}")
+        return False
+
+
+def alterar_status_servico(os_id, status):
+    data_fechamento = datetime.now().strftime("%d-%m-%Y %H:%M:%S") if status == "fechada" else None
+    return update_servico(os_id, status=status, data_fechamento=data_fechamento)
+
+
+def toggle_status_servico(os_id):
+    servico = get_servico(os_id)
+    if not servico:
+        return False
+    novo_status = "fechada" if servico["status"] == "aberta" else "aberta"
+    return alterar_status_servico(os_id, novo_status)
+
+
+def delete_servico(os_id):
+    table = get_os_table()
+    Os_q = Query()
+    try:
+        table.remove(Os_q.id == os_id)
+        return True
+    except Exception as err:
+        print(f"Erro ao remover ordem de servico: {err}")
+        return False
+
+
 def query_services():
-    db_vendas_table_services = db_vendas.table("services")
+    """Lista de serviços (compatiblidade legada) - retorna todas as ordens."""
+    return list_ordens_servico()
 
 
 def save_vendas(
@@ -132,21 +223,40 @@ def save_vendas(
     hora_venda: str | None = None,
 ) -> bool:
     """
-    Salva uma venda no histórico de vendas.
+    Salva uma venda no histórico e atualiza o estoque de forma atômica.
     """
+    from collections import Counter
 
     db_vendas_s_table = db_vendas.table("sells_history")
+    product_table = db.table("Produtos")
+    Product_q = Query()
 
-    # Caso data ou hora não sejam informadas, usa o momento atual
     now = datetime.now()
-
     if data_venda is None:
         data_venda = now.strftime("%d-%m-%Y")
-
     if hora_venda is None:
         hora_venda = now.strftime("%H:%M:%S")
 
     try:
+        # 1. Valida se o estoque é suficiente para TODOS os itens antes de alterar algo
+        counts = Counter(itens_venda)
+        for pid, qty in counts.items():
+            prod = product_table.get(Product_q.id == pid)
+            if not prod:
+                print(f"Produto {pid} não encontrado no estoque.")
+                return False
+            qtd_atual = int(prod.get("quantidade_prd", 0))
+            if qtd_atual < qty:
+                print(f"Estoque insuficiente para {prod.get('nome')}: necessário {qty}, disponível {qtd_atual}.")
+                return False
+
+        # 2. Abate do estoque
+        for pid, qty in counts.items():
+            prod = product_table.get(Product_q.id == pid)
+            nova_qtd = int(prod.get("quantidade_prd", 0)) - qty
+            product_table.update({"quantidade_prd": str(nova_qtd)}, Product_q.id == pid)
+
+        # 3. Registra a venda
         db_vendas_s_table.insert(
             {
                 "id": uuid.uuid4().hex,
@@ -160,13 +270,9 @@ def save_vendas(
             }
         )
 
-        for item in itens_venda:
-            subtract_stock(product_id=item, quantity=1)
-
         return True
 
     except Exception as err:
-        # Ideal: logar o erro
         print(f"Erro ao salvar venda: {err}")
         return False
 
